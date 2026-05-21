@@ -41,7 +41,13 @@ const server = http.createServer((req, res) => {
 
   try {
     if (u.pathname === '/' || u.pathname === '/index.html') {
-      return send(res, 200, 'text/html; charset=utf-8', fs.readFileSync(HTML_FILE));
+      // never cache the dashboard HTML — otherwise every fix we ship lands
+      // behind a stale tab the user has to remember to hard-reload.
+      return send(res, 200, 'text/html; charset=utf-8', fs.readFileSync(HTML_FILE), {
+        'Cache-Control': 'no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      });
     }
 
     if (u.pathname === '/api/stats') {
