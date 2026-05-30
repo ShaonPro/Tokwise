@@ -2,7 +2,7 @@
 'use strict';
 
 /* ============================================================================
- * Tokwise · cli.js — terminal report
+ * Tokrax · cli.js — terminal report
  * ----------------------------------------------------------------------------
  * ✦  Customized by ShaonPro · https://github.com/ShaonPro
  * ==========================================================================*/
@@ -21,7 +21,7 @@ function arg(name, def) {
 }
 if (args.includes('--help') || args.includes('-h')) {
   console.log(`
-  Tokwise — terminal dashboard
+  Tokrax — terminal dashboard
 
   Usage:
     node cli.js [options]
@@ -130,7 +130,7 @@ const projLabel =
 // ---- header ---------------------------------------------------------------
 console.log('');
 console.log(
-  `  ${C.coral}${C.bold}✦  Tokwise${C.reset}  ${C.faint}·${C.reset}  ${C.mute}${rangeLabel}${C.reset}  ${C.faint}·${C.reset}  ${C.mute}${projLabel}${C.reset}`
+  `  ${C.coral}${C.bold}✦  Tokrax${C.reset}  ${C.faint}·${C.reset}  ${C.mute}${rangeLabel}${C.reset}  ${C.faint}·${C.reset}  ${C.mute}${projLabel}${C.reset}`
 );
 if (data.range.first) {
   console.log(

@@ -65,6 +65,6 @@ These have been considered and declined. PRs implementing them will be closed.
 
 - Pick anything from **Now** or **Next** and open an issue saying you're going
   to try it.
-- Have a different idea? [Open a feature request](https://github.com/ShaonPro/Tokwise/issues/new?template=feature_request.yml).
+- Have a different idea? [Open a feature request](https://github.com/ShaonPro/Tokrax/issues/new?template=feature_request.yml).
 - See `good first issue` for entry-level tasks.
 - Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a PR.

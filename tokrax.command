@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tokwise — macOS launcher.
+# Tokrax — macOS launcher.
 # Double-click this file in Finder to start the dashboard.
 
 set -e
@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 
 if ! command -v node >/dev/null 2>&1; then
   echo
-  echo "  Tokwise"
+  echo "  Tokrax"
   echo "  ----------------------"
   echo "  Node.js is not installed."
   echo "  Get it from https://nodejs.org (you need version 22.5 or newer),"
@@ -22,7 +22,7 @@ NODE_MAJOR=$(node -p "process.versions.node.split('.').map(Number)[0]" 2>/dev/nu
 NODE_MINOR=$(node -p "process.versions.node.split('.').map(Number)[1]" 2>/dev/null || echo 0)
 if [ "$NODE_MAJOR" -lt 22 ] || { [ "$NODE_MAJOR" -eq 22 ] && [ "$NODE_MINOR" -lt 5 ]; }; then
   echo
-  echo "  Tokwise needs Node.js 22.5 or newer."
+  echo "  Tokrax needs Node.js 22.5 or newer."
   echo "  You have: $(node -v)"
   echo "  Update from https://nodejs.org"
   echo

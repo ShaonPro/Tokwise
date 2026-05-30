@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         Thanks for the idea! Before you fill this in, please check
-        [ROADMAP.md](https://github.com/ShaonPro/Tokwise/blob/main/ROADMAP.md) —
+        [ROADMAP.md](https://github.com/ShaonPro/Tokrax/blob/main/ROADMAP.md) —
         some things are already planned, and a few are explicitly out of scope.
 
   - type: textarea
@@ -67,7 +67,7 @@ body:
     attributes:
       label: Checks
       options:
-        - label: I've read [ROADMAP.md](https://github.com/ShaonPro/Tokwise/blob/main/ROADMAP.md) and this isn't already planned or out of scope
+        - label: I've read [ROADMAP.md](https://github.com/ShaonPro/Tokrax/blob/main/ROADMAP.md) and this isn't already planned or out of scope
           required: true
-        - label: I've searched [existing feature requests](https://github.com/ShaonPro/Tokwise/issues?q=is%3Aissue+label%3Aenhancement)
+        - label: I've searched [existing feature requests](https://github.com/ShaonPro/Tokrax/issues?q=is%3Aissue+label%3Aenhancement)
           required: true

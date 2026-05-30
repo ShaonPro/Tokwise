@@ -1,13 +1,13 @@
 <div align="center">
 
-# ✦ &nbsp; Tokwise
+# ✦ &nbsp; Tokrax
 
 **Local-first usage, cost & live-monitor dashboard for your AI coding tools** —
 Claude Code **and** Codex CLI, in one place. KPIs, real-time monitor, cost
 forecast, session deep-dive, MCP-server breakdown, and a token-saving advisor.
 Everything runs on `127.0.0.1`. Your data never leaves your machine.
 
-[![CI](https://github.com/ShaonPro/Tokwise/actions/workflows/ci.yml/badge.svg)](https://github.com/ShaonPro/Tokwise/actions/workflows/ci.yml)
+[![CI](https://github.com/ShaonPro/Tokrax/actions/workflows/ci.yml/badge.svg)](https://github.com/ShaonPro/Tokrax/actions/workflows/ci.yml)
 [![Node](https://img.shields.io/badge/Node-22.5%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero deps](https://img.shields.io/badge/Dependencies-0-success)]()
@@ -25,7 +25,7 @@ Everything runs on `127.0.0.1`. Your data never leaves your machine.
 ## ⚡ &nbsp; One command — plug and play
 
 ```bash
-npx github:ShaonPro/Tokwise
+npx github:ShaonPro/Tokrax
 ```
 
 That's it. The dashboard opens in your default browser at <http://127.0.0.1:47776>
@@ -37,10 +37,10 @@ No clone, no install, no `npm install`. Press **Ctrl + C** to stop.
 ### Install once, run anywhere
 
 ```bash
-npm i -g github:ShaonPro/Tokwise
+npm i -g github:ShaonPro/Tokrax
 
-tokwise          # open the web dashboard
-tokwise-cli      # full report right in your terminal
+tokrax          # open the web dashboard
+tokrax-cli      # full report right in your terminal
 ```
 
 Re-run the `npm i -g` command to update — npm refetches by commit hash automatically.
@@ -52,9 +52,9 @@ your OS:
 
 | OS      | Launcher                          |
 | ------- | --------------------------------- |
-| macOS   | `tokwise.command` *(right-click → Open the first time)* |
-| Windows | `tokwise.bat`                |
-| Linux   | `./tokwise.sh`               |
+| macOS   | `tokrax.command` *(right-click → Open the first time)* |
+| Windows | `tokrax.bat`                |
+| Linux   | `./tokrax.sh`               |
 
 ### Requirements
 
@@ -64,7 +64,7 @@ your OS:
 - At least one supported tool used once (see below).
 
 > **Windows note** — the `npx github:` form works in PowerShell, Command Prompt, and Git Bash.
-> If you prefer the launcher, double-click `tokwise.bat` after cloning the repo.
+> If you prefer the launcher, double-click `tokrax.bat` after cloning the repo.
 
 ### Supported tools
 
@@ -147,10 +147,10 @@ See exactly which MCP servers your turns hit, with per-tool drill-down.
 ## 🖥️ &nbsp; Terminal mode
 
 ```bash
-tokwise-cli                          # everything, all time
-tokwise-cli --range 7d               # last 7 days  (7d | 14d | 30d | 90d | all)
-tokwise-cli --project acme-corp/api  # filter to one project
-tokwise-cli --json                   # raw JSON, pipe-friendly
+tokrax-cli                          # everything, all time
+tokrax-cli --range 7d               # last 7 days  (7d | 14d | 30d | 90d | all)
+tokrax-cli --project acme-corp/api  # filter to one project
+tokrax-cli --json                   # raw JSON, pipe-friendly
 ```
 
 *(Or `node cli.js --range 7d` if you didn't install globally.)*
@@ -175,8 +175,8 @@ or when you don't have a browser handy.
 Examples:
 
 ```bash
-PORT=8090 npx github:ShaonPro/Tokwise         # custom port
-NO_OPEN=1 npx github:ShaonPro/Tokwise         # don't auto-open browser
+PORT=8090 npx github:ShaonPro/Tokrax         # custom port
+NO_OPEN=1 npx github:ShaonPro/Tokrax         # don't auto-open browser
 ```
 
 ---
@@ -202,7 +202,7 @@ stats.js           Reads ~/.claude/usage.db + JSONL files, applies pricing,
 dashboard.html     Single-page web UI — vanilla JS, custom SVG charts,
                    no CDN, no build step
 cli.js             ANSI-colored terminal dashboard
-tokwise.*     One-click launcher per OS
+tokrax.*     One-click launcher per OS
 ```
 
 The dashboard polls **two endpoints**:
@@ -242,7 +242,7 @@ image with a low-key watermark.
 | `stats.js`                 | Data layer — transcripts/SQLite, pricing, aggregation |
 | `dashboard.html`           | Single-page web UI                               |
 | `cli.js`                   | Terminal dashboard                               |
-| `tokwise.command/.bat/.sh`  | One-click launchers per OS                       |
+| `tokrax.command/.bat/.sh`  | One-click launchers per OS                       |
 | `html2canvas.min.js`       | Vendored — powers portable PNG capture           |
 | `test/stats.test.js`       | Zero-dependency test suite (`node --test`)       |
 | `.github/workflows/ci.yml` | CI matrix — Node 22+24 × Ubuntu+Windows+macOS    |
@@ -257,19 +257,19 @@ to start.
 
 - 📋 **[CONTRIBUTING.md](CONTRIBUTING.md)** — dev setup, ground rules, PR checklist
 - 🗺️ **[ROADMAP.md](ROADMAP.md)** — what's planned next, what's explicitly out of scope
-- 🐛 **[Open a bug](https://github.com/ShaonPro/Tokwise/issues/new?template=bug_report.yml)**  ·  ✨ **[Request a feature](https://github.com/ShaonPro/Tokwise/issues/new?template=feature_request.yml)**
+- 🐛 **[Open a bug](https://github.com/ShaonPro/Tokrax/issues/new?template=bug_report.yml)**  ·  ✨ **[Request a feature](https://github.com/ShaonPro/Tokrax/issues/new?template=feature_request.yml)**
 - 📜 **[CHANGELOG.md](CHANGELOG.md)** — what's changed across versions
 - 💬 **[Code of Conduct](CODE_OF_CONDUCT.md)** — be kind, be specific
 
 Looking for an easy first PR? Check the
-[`good first issue`](https://github.com/ShaonPro/Tokwise/labels/good%20first%20issue)
+[`good first issue`](https://github.com/ShaonPro/Tokrax/labels/good%20first%20issue)
 label. Adding a new tool adapter is a particularly contained change — see the
 Roadmap.
 
 ### Quick dev loop
 
 ```bash
-git clone https://github.com/ShaonPro/Tokwise && cd Tokwise
+git clone https://github.com/ShaonPro/Tokrax && cd Tokrax
 node server.js      # runs against your real data on http://127.0.0.1:47776
 npm test            # self-contained tests (build their own fixtures, zero deps)
 ```

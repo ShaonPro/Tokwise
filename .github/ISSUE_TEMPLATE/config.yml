@@ -4,8 +4,8 @@ contact_links:
     url: mailto:hi@shaon.pro
     about: Please do NOT open a public issue for security problems — email hi@shaon.pro instead. See SECURITY.md.
   - name: 💬 Ask a question / get help
-    url: https://github.com/ShaonPro/Tokwise/discussions
+    url: https://github.com/ShaonPro/Tokrax/discussions
     about: For questions, ideas, or help, please use GitHub Discussions.
   - name: 📖 Read the docs
-    url: https://github.com/ShaonPro/Tokwise#readme
+    url: https://github.com/ShaonPro/Tokrax#readme
     about: README + CONTRIBUTING + ROADMAP cover most setup and usage questions.

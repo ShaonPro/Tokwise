@@ -17,7 +17,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 
 // ---- build fixtures BEFORE requiring stats (paths resolve at module load) ----
-const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'tokwise-test-'));
+const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'tokrax-test-'));
 const CLAUDE_PROJ = path.join(TMP, 'claude', 'projects', 'demo-proj');
 const CODEX_DIR = path.join(TMP, 'codex', 'sessions', '2026', '05', '30');
 fs.mkdirSync(CLAUDE_PROJ, { recursive: true });

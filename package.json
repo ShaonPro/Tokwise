@@ -1,10 +1,10 @@
 {
-  "name": "tokwise",
+  "name": "tokrax",
   "version": "1.0.0",
-  "description": "Tokwise — local-first usage, cost & live-monitor dashboard for AI coding tools (Claude Code + Codex CLI). Zero dependencies; reads your transcripts read-only; nothing leaves your machine.",
+  "description": "Tokrax — local-first usage, cost & live-monitor dashboard for AI coding tools (Claude Code + Codex CLI). Zero dependencies; reads your transcripts read-only; nothing leaves your machine.",
   "bin": {
-    "tokwise": "./server.js",
-    "tokwise-cli": "./cli.js"
+    "tokrax": "./server.js",
+    "tokrax-cli": "./cli.js"
   },
   "scripts": {
     "start": "node server.js",
@@ -41,18 +41,18 @@
     "cli.js",
     "dashboard.html",
     "html2canvas.min.js",
-    "tokwise.command",
-    "tokwise.bat",
-    "tokwise.sh",
+    "tokrax.command",
+    "tokrax.bat",
+    "tokrax.sh",
     "README.md",
     "LICENSE"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ShaonPro/Tokwise.git"
+    "url": "git+https://github.com/ShaonPro/Tokrax.git"
   },
-  "homepage": "https://github.com/ShaonPro/Tokwise#readme",
+  "homepage": "https://github.com/ShaonPro/Tokrax#readme",
   "bugs": {
-    "url": "https://github.com/ShaonPro/Tokwise/issues"
+    "url": "https://github.com/ShaonPro/Tokrax/issues"
   }
 }

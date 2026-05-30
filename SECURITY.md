@@ -1,6 +1,6 @@
 # Security Policy
 
-The Tokwise is built around one promise: **your usage data never
+The Tokrax is built around one promise: **your usage data never
 leaves your machine.** This document explains how that's enforced, what the
 threat model is, and how to report a problem.
 

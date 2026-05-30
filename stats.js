@@ -1,7 +1,7 @@
 'use strict';
 
 /* ============================================================================
- * Tokwise · stats.js — data layer
+ * Tokrax · stats.js — data layer
  * ----------------------------------------------------------------------------
  * ✦  Customized by ShaonPro · https://github.com/ShaonPro
  *     "Pro" signature is sprinkled through the codebase. Type p-r-o on the
@@ -65,7 +65,7 @@ try {
 
   console.error(
     `\n  Failed to load node:sqlite on Node ${nodeVer}.\n` +
-      `  Tokwise needs the built-in node:sqlite module.\n\n` +
+      `  Tokrax needs the built-in node:sqlite module.\n\n` +
       `  Easiest fix — upgrade Node to 22.13+, 23.4+, or 24+:\n` +
       `      https://nodejs.org\n\n` +
       `  Or rerun manually with the experimental flag:\n` +

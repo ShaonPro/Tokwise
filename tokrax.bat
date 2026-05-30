@@ -1,14 +1,14 @@
 @echo off
-REM Tokwise - Windows launcher.
+REM Tokrax - Windows launcher.
 REM Double-click this file to start the dashboard.
 
-title Tokwise
+title Tokrax
 cd /d "%~dp0"
 
 where node >nul 2>&1
 if errorlevel 1 (
   echo.
-  echo   Tokwise
+  echo   Tokrax
   echo   ----------------------
   echo   Node.js is not installed.
   echo   Get it from https://nodejs.org ^(you need version 22.5 or newer^),
@@ -21,7 +21,7 @@ if errorlevel 1 (
 for /f "tokens=*" %%i in ('node -p "process.versions.node.split('.').map(Number)[0]*1000 + process.versions.node.split('.').map(Number)[1]"') do set NODE_VER=%%i
 if %NODE_VER% LSS 22005 (
   echo.
-  echo   Tokwise needs Node.js 22.5 or newer.
+  echo   Tokrax needs Node.js 22.5 or newer.
   for /f "tokens=*" %%v in ('node -v') do echo   You have: %%v
   echo   Update from https://nodejs.org
   echo.

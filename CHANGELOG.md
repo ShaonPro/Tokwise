@@ -6,7 +6,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [1.0.0] — 2026-05-30
 
-First public release of **Tokwise** — a local-first usage, cost, and
+First public release of **Tokrax** — a local-first usage, cost, and
 live-monitor dashboard for AI coding tools.
 
 ### Highlights
@@ -30,7 +30,7 @@ live-monitor dashboard for AI coding tools.
   in Photoshop / Preview / anywhere, also copied to clipboard) or **SVG**
   (vector), Mac-window-framed with six gradient backgrounds and a low-key
   watermark.
-- **Terminal mode** — `tokwise-cli` renders the same stats with ANSI color;
+- **Terminal mode** — `tokrax-cli` renders the same stats with ANSI color;
   supports `--source claude|codex|all`.
 
 ### Privacy & footprint
@@ -50,4 +50,4 @@ live-monitor dashboard for AI coding tools.
 - Community health files: CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, ROADMAP,
   issue + PR templates.
 
-[1.0.0]: https://github.com/ShaonPro/Tokwise/releases/tag/v1.0.0
+[1.0.0]: https://github.com/ShaonPro/Tokrax/releases/tag/v1.0.0

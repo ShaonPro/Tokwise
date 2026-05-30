@@ -2,10 +2,10 @@
 'use strict';
 
 /* ============================================================================
- * Tokwise · server.js — local HTTP server
+ * Tokrax · server.js — local HTTP server
  * ----------------------------------------------------------------------------
  * ✦  Customized by ShaonPro · https://github.com/ShaonPro
- *     Pro-grade plug-and-play: `npx github:ShaonPro/Tokwise`
+ *     Pro-grade plug-and-play: `npx github:ShaonPro/Tokrax`
  * ==========================================================================*/
 
 /**
@@ -175,7 +175,7 @@ server.on('listening', () => {
   console.log(
     [
       '',
-      '  \x1b[38;5;209m✦\x1b[0m  \x1b[1mTokwise\x1b[0m  \x1b[38;5;245mlocal AI usage dashboard\x1b[0m',
+      '  \x1b[38;5;209m✦\x1b[0m  \x1b[1mTokrax\x1b[0m  \x1b[38;5;245mlocal AI usage dashboard\x1b[0m',
       '',
       `     Dashboard   \x1b[38;5;209m${url}\x1b[0m`,
       `     Data        \x1b[38;5;245m${DB_PATH}\x1b[0m`,

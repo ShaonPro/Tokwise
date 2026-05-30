@@ -1,4 +1,4 @@
-# Contributing to Tokwise
+# Contributing to Tokrax
 
 Thanks for considering a contribution! This project is small, dependency-free,
 and local-first by design — those three constraints shape everything below.
@@ -21,8 +21,8 @@ and local-first by design — those three constraints shape everything below.
 ## Dev setup
 
 ```bash
-git clone https://github.com/ShaonPro/Tokwise
-cd Tokwise
+git clone https://github.com/ShaonPro/Tokrax
+cd Tokrax
 
 # Run the dashboard against your real data
 node server.js
@@ -60,7 +60,7 @@ A green check is required to merge.
 
 ## Good first issues
 
-Look for the [`good first issue`](https://github.com/ShaonPro/Tokwise/labels/good%20first%20issue)
+Look for the [`good first issue`](https://github.com/ShaonPro/Tokrax/labels/good%20first%20issue)
 label. Adding a new tool adapter (see [ROADMAP.md](ROADMAP.md)) is a great way
 to get started — the data layer is built to make this a contained change.
 

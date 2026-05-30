@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Tokwise — Linux / macOS terminal launcher.
-# Run: ./tokwise.sh
+# Tokrax — Linux / macOS terminal launcher.
+# Run: ./tokrax.sh
 
 set -e
 cd "$(dirname "$0")"
