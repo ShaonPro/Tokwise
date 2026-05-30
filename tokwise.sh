@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Claude Usage Dashboard — Linux / macOS terminal launcher.
-# Run: ./claude-usage.sh
+# Tokwise — Linux / macOS terminal launcher.
+# Run: ./tokwise.sh
 
 set -e
 cd "$(dirname "$0")"

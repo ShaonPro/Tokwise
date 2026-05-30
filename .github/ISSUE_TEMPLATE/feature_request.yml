@@ -1,0 +1,73 @@
+name: ✨ Feature request
+description: Suggest an improvement or a new capability
+title: "[feature] "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea! Before you fill this in, please check
+        [ROADMAP.md](https://github.com/ShaonPro/Tokwise/blob/main/ROADMAP.md) —
+        some things are already planned, and a few are explicitly out of scope.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      description: Skip the "wouldn't it be cool if" and start with the friction. What are you doing today that's annoying / impossible / slow?
+      placeholder: |
+        I have three Claude Code projects and I want to know which one I spent
+        the most time in last week, but I have to manually skim the sessions
+        table to figure it out.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: What would your ideal solution look like?
+      description: Concrete is better than abstract. Sketches / mockups / screenshots welcome.
+      placeholder: |
+        A "Time by project" view that groups all sessions in the selected range
+        by project and sorts them by total active minutes.
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you've considered
+      description: Have you found a workaround? Tried another tool? Knowing this helps us see whether a new feature is the right answer.
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: How big do you think this is?
+      options:
+        - Small (hours of work)
+        - Medium (a day or two)
+        - Large (more than a day)
+        - Honestly, no idea
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: principles
+    attributes:
+      label: Does this fit the project's principles?
+      description: This dashboard is local-first, dependency-free, and Claude-Code-focused.
+      options:
+        - label: Works without network access (no outbound calls, no auth)
+          required: true
+        - label: Doesn't require adding a runtime npm dependency
+          required: true
+        - label: Doesn't ask the dashboard to write to `~/.claude/usage.db`
+          required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I've read [ROADMAP.md](https://github.com/ShaonPro/Tokwise/blob/main/ROADMAP.md) and this isn't already planned or out of scope
+          required: true
+        - label: I've searched [existing feature requests](https://github.com/ShaonPro/Tokwise/issues?q=is%3Aissue+label%3Aenhancement)
+          required: true

@@ -1,15 +1,18 @@
 <div align="center">
 
-# ✦ &nbsp; Claude Usage Dashboard
+# ✦ &nbsp; Tokwise
 
-**Premium local analytics for Claude Code** — KPIs, real-time monitor, cost forecast,
-session deep-dive, MCP-server breakdown, and a token-saving advisor.
+**Local-first usage, cost & live-monitor dashboard for your AI coding tools** —
+Claude Code **and** Codex CLI, in one place. KPIs, real-time monitor, cost
+forecast, session deep-dive, MCP-server breakdown, and a token-saving advisor.
 Everything runs on `127.0.0.1`. Your data never leaves your machine.
 
+[![CI](https://github.com/ShaonPro/Tokwise/actions/workflows/ci.yml/badge.svg)](https://github.com/ShaonPro/Tokwise/actions/workflows/ci.yml)
 [![Node](https://img.shields.io/badge/Node-22.5%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero deps](https://img.shields.io/badge/Dependencies-0-success)]()
 [![Privacy](https://img.shields.io/badge/Data-Stays%20local-orange)]()
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-ff69b4)](CONTRIBUTING.md)
 
 <br/>
 
@@ -22,10 +25,11 @@ Everything runs on `127.0.0.1`. Your data never leaves your machine.
 ## ⚡ &nbsp; One command — plug and play
 
 ```bash
-npx github:ShaonPro/Token-Usage
+npx github:ShaonPro/Tokwise
 ```
 
-That's it. The dashboard opens in your default browser at <http://127.0.0.1:47821>.
+That's it. The dashboard opens in your default browser at <http://127.0.0.1:47776>
+(port `47776` — ends in `776` = "PRO" on a phone keypad ✦).
 No clone, no install, no `npm install`. Press **Ctrl + C** to stop.
 
 > **Heads-up** — `npx` will ask once to install. Say yes. Subsequent runs are instant.
@@ -33,10 +37,10 @@ No clone, no install, no `npm install`. Press **Ctrl + C** to stop.
 ### Install once, run anywhere
 
 ```bash
-npm i -g github:ShaonPro/Token-Usage
+npm i -g github:ShaonPro/Tokwise
 
-claude-usage          # open the web dashboard
-claude-usage-cli      # full report right in your terminal
+tokwise          # open the web dashboard
+tokwise-cli      # full report right in your terminal
 ```
 
 Re-run the `npm i -g` command to update — npm refetches by commit hash automatically.
@@ -48,20 +52,36 @@ your OS:
 
 | OS      | Launcher                          |
 | ------- | --------------------------------- |
-| macOS   | `claude-usage.command` *(right-click → Open the first time)* |
-| Windows | `claude-usage.bat`                |
-| Linux   | `./claude-usage.sh`               |
+| macOS   | `tokwise.command` *(right-click → Open the first time)* |
+| Windows | `tokwise.bat`                |
+| Linux   | `./tokwise.sh`               |
 
 ### Requirements
 
-- **Node.js 22.7+ recommended** (22.5/22.6 also work — the launcher auto-adds
-  `--experimental-sqlite` if needed). Uses Node's built-in `node:sqlite` so
-  **`npm install` is never needed**.
-- **Claude Code** installed and used at least once so `~/.claude/` exists
-  (on Windows: `%USERPROFILE%\.claude\`).
+- **Node.js 22.13+, 23.4+, or 24+ recommended.** Older 22 / 23 also work —
+  the dashboard auto-adds `--experimental-sqlite` for you. Uses Node's built-in
+  `node:sqlite`, so **`npm install` is never needed**.
+- At least one supported tool used once (see below).
 
 > **Windows note** — the `npx github:` form works in PowerShell, Command Prompt, and Git Bash.
-> If you prefer the launcher, double-click `claude-usage.bat` after cloning the repo.
+> If you prefer the launcher, double-click `tokwise.bat` after cloning the repo.
+
+### Supported tools
+
+The dashboard auto-detects which tools you have and shows a **Claude · Codex · All**
+switcher in the header (it only appears when more than one is present).
+
+| Tool | Reads | Data source |
+| --- | --- | --- |
+| **Claude Code** | `~/.claude/usage.db` + `~/.claude/projects/**/*.jsonl` | SQLite + live JSONL |
+| **Codex CLI** | `~/.codex/sessions/**/rollout-*.jsonl` | live JSONL (parsed in-memory) |
+
+Both are read **read-only**. Cost is computed locally from token counts using
+published API list prices — no network, no auth. On Windows the same paths live
+under `%USERPROFILE%\.claude\` and `%USERPROFILE%\.codex\`.
+
+> More adapters (Cline, Continue, Aider, Gemini CLI, Cursor) are on the
+> [roadmap](ROADMAP.md) — one at a time, only when each is rock-solid.
 
 ---
 
@@ -127,10 +147,10 @@ See exactly which MCP servers your turns hit, with per-tool drill-down.
 ## 🖥️ &nbsp; Terminal mode
 
 ```bash
-claude-usage-cli                          # everything, all time
-claude-usage-cli --range 7d               # last 7 days  (7d | 14d | 30d | 90d | all)
-claude-usage-cli --project acme-corp/api  # filter to one project
-claude-usage-cli --json                   # raw JSON, pipe-friendly
+tokwise-cli                          # everything, all time
+tokwise-cli --range 7d               # last 7 days  (7d | 14d | 30d | 90d | all)
+tokwise-cli --project acme-corp/api  # filter to one project
+tokwise-cli --json                   # raw JSON, pipe-friendly
 ```
 
 *(Or `node cli.js --range 7d` if you didn't install globally.)*
@@ -145,16 +165,18 @@ or when you don't have a browser handy.
 
 | Env var      | Effect                                                                  |
 | ------------ | ----------------------------------------------------------------------- |
-| `PORT`       | Pick a different port. Auto-tries the next 10 if `47821` is busy.       |
+| `PORT`       | Pick a different port. Auto-tries the next 10 if `47776` is busy.       |
 | `NO_OPEN`    | Set to anything truthy to skip auto-opening the browser.                |
 | `HOST`       | Override the bind address. Default `127.0.0.1` — **leave it loopback**. |
-| `CLAUDE_USAGE_DB` | Point at a different SQLite DB (useful for demos / multiple installs). |
+| `CLAUDE_USAGE_DB` | Point at a different Claude `usage.db`. |
+| `CLAUDE_USAGE_PROJECTS_DIR` | Point at a different Claude transcripts dir. |
+| `CLAUDE_USAGE_CODEX_DIR` | Point at a different Codex `sessions` dir. |
 
 Examples:
 
 ```bash
-PORT=8090 npx github:ShaonPro/Token-Usage         # custom port
-NO_OPEN=1 npx github:ShaonPro/Token-Usage         # don't auto-open browser
+PORT=8090 npx github:ShaonPro/Tokwise         # custom port
+NO_OPEN=1 npx github:ShaonPro/Tokwise         # don't auto-open browser
 ```
 
 ---
@@ -180,7 +202,7 @@ stats.js           Reads ~/.claude/usage.db + JSONL files, applies pricing,
 dashboard.html     Single-page web UI — vanilla JS, custom SVG charts,
                    no CDN, no build step
 cli.js             ANSI-colored terminal dashboard
-claude-usage.*     One-click launcher per OS
+tokwise.*     One-click launcher per OS
 ```
 
 The dashboard polls **two endpoints**:
@@ -194,46 +216,70 @@ The dashboard polls **two endpoints**:
 Per-session deep-dive uses `GET /api/session/:id` and parses just that
 session's turns.
 
-### Share any card as an SVG
+### Share any card as an image
 
-Hover any card → click the camera icon → pick one of six gradient
-backgrounds → get a Mac-window-framed SVG with a low-key watermark.
-Open the `.svg` in Preview / Photoshop / Figma to export to PNG at
-any resolution.
+Hover any card (or the KPI grid) → click the camera icon → pick **PNG**
+or **SVG** and one of six gradient backgrounds → get a Mac-window-framed
+image with a low-key watermark.
 
-SVG is chosen for lossless quality, modern-CSS fidelity (`color-mix`,
-`oklab`, `color(srgb …)` all render perfectly), and tiny file size.
+- **PNG** (default) — a real raster image that opens **anywhere**:
+  Photoshop, Preview, Slack, X, LinkedIn. Rendered locally via a vendored
+  `html2canvas` (no CDN). Also copied to your clipboard for instant paste.
+- **SVG** — vector, tiny, lossless — best opened in a browser or Figma.
+  (Note: SVG embeds the live DOM via `foreignObject`, which only renders in
+  web browsers — use PNG if you need Photoshop/Preview.)
 
----
-
-## 🧪 &nbsp; Demo mode
-
-Want to try it without your own data?
-
-```bash
-git clone https://github.com/ShaonPro/Token-Usage
-cd Token-Usage
-node scripts/seed-demo.js                # writes demo-usage.db
-node scripts/demo-server.js              # runs against demo data on :47831
-```
-
-All the screenshots above were captured from this demo seed — believable
-fake projects, costs, and session health states, no real data exposed.
+> The screenshots above use fake projects, costs, and models — **no real data
+> is ever shown**.
 
 ---
 
 ## 📦 &nbsp; What's in the repo
 
-| File                         | Purpose                                          |
-| ---------------------------- | ------------------------------------------------ |
-| `server.js`                  | Local HTTP server                                |
-| `stats.js`                   | SQLite + JSONL data layer, pricing, aggregation  |
-| `dashboard.html`             | Single-page web UI                               |
-| `cli.js`                     | Terminal dashboard                               |
-| `claude-usage.command/.bat/.sh` | One-click launchers per OS                    |
-| `scripts/seed-demo.js`       | Generate `demo-usage.db` with believable dummy data |
-| `scripts/demo-server.js`     | Demo server (stubs `/api/live` with canned data) |
-| `scripts/capture-screenshots.js` | Headless Chrome screenshot capture           |
+| File                       | Purpose                                          |
+| -------------------------- | ------------------------------------------------ |
+| `server.js`                | Local HTTP server + JSON API                     |
+| `stats.js`                 | Data layer — transcripts/SQLite, pricing, aggregation |
+| `dashboard.html`           | Single-page web UI                               |
+| `cli.js`                   | Terminal dashboard                               |
+| `tokwise.command/.bat/.sh`  | One-click launchers per OS                       |
+| `html2canvas.min.js`       | Vendored — powers portable PNG capture           |
+| `test/stats.test.js`       | Zero-dependency test suite (`node --test`)       |
+| `.github/workflows/ci.yml` | CI matrix — Node 22+24 × Ubuntu+Windows+macOS    |
+
+---
+
+## 🤝 &nbsp; Contributing
+
+Contributions are very welcome — the project is small, dependency-free, and
+local-first by design. Bug fixes, adapters, and UX polish are all great places
+to start.
+
+- 📋 **[CONTRIBUTING.md](CONTRIBUTING.md)** — dev setup, ground rules, PR checklist
+- 🗺️ **[ROADMAP.md](ROADMAP.md)** — what's planned next, what's explicitly out of scope
+- 🐛 **[Open a bug](https://github.com/ShaonPro/Tokwise/issues/new?template=bug_report.yml)**  ·  ✨ **[Request a feature](https://github.com/ShaonPro/Tokwise/issues/new?template=feature_request.yml)**
+- 📜 **[CHANGELOG.md](CHANGELOG.md)** — what's changed across versions
+- 💬 **[Code of Conduct](CODE_OF_CONDUCT.md)** — be kind, be specific
+
+Looking for an easy first PR? Check the
+[`good first issue`](https://github.com/ShaonPro/Tokwise/labels/good%20first%20issue)
+label. Adding a new tool adapter is a particularly contained change — see the
+Roadmap.
+
+### Quick dev loop
+
+```bash
+git clone https://github.com/ShaonPro/Tokwise && cd Tokwise
+node server.js      # runs against your real data on http://127.0.0.1:47776
+npm test            # self-contained tests (build their own fixtures, zero deps)
+```
+
+## 🔒 &nbsp; Security
+
+The dashboard is built around one promise: **your usage data never leaves your
+machine.** That promise is enforced in code — read **[SECURITY.md](SECURITY.md)**
+for the line-by-line guarantees, the threat model, and how to responsibly
+report a vulnerability (email **hi@shaon.pro**, not a public issue).
 
 ---
 

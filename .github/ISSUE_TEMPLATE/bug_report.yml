@@ -1,0 +1,107 @@
+name: 🐛 Bug report
+description: Something is broken or behaving unexpectedly
+title: "[bug] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a clear report! The more specific you
+        are, the faster this gets fixed.
+
+        **Security issue?** Please email **hi@shaon.pro** — do NOT open a public
+        issue for security vulnerabilities. See [SECURITY.md](https://github.com/ShaonPro/Tokwise/blob/main/SECURITY.md).
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear and concise description of the bug.
+      placeholder: When I click the camera icon on the Live Monitor card, the download is a zero-byte file.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Walk us through the exact steps. A 30-second checklist is gold.
+      placeholder: |
+        1. Run `npx github:ShaonPro/Tokwise`
+        2. Open http://127.0.0.1:47821
+        3. Hover the Live Monitor card
+        4. Click the camera icon → pick "Coral Sunset" → click Download SVG
+        5. Open the downloaded file
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+      placeholder: I expected a Mac-framed SVG of the Live Monitor card with the demo content visible.
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Windows
+        - Linux
+        - Other (please describe in the screenshots field)
+    validations:
+      required: true
+
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js version
+      description: Run `node --version`
+      placeholder: v24.3.0
+    validations:
+      required: true
+
+  - type: input
+    id: dashboard-version
+    attributes:
+      label: Dashboard version / commit
+      description: From the bottom of the dashboard, or `git rev-parse --short HEAD` if you cloned.
+      placeholder: 86613f6 / v1.0.0
+
+  - type: dropdown
+    id: install-method
+    attributes:
+      label: How did you install it?
+      options:
+        - "`npx github:ShaonPro/Tokwise`"
+        - "`npm i -g github:ShaonPro/Tokwise`"
+        - Cloned the repo, ran `node server.js`
+        - One of the launcher files (.command / .bat / .sh)
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Terminal output / browser console
+      description: Paste any errors from the terminal where you ran the server, or from the browser's DevTools console (Cmd+Opt+J / Ctrl+Shift+J).
+      render: shell
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots (optional)
+      description: Drag-and-drop images here. **Do not include screenshots of real usage data** — please use demo mode (`npm run demo`).
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I'm on the latest version (or I've noted the version above)
+          required: true
+        - label: I've searched [existing issues](https://github.com/ShaonPro/Tokwise/issues?q=is%3Aissue) and this isn't a duplicate
+          required: true
+        - label: No real / personal usage data is shown in my screenshots
+          required: true

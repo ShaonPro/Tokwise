@@ -2,10 +2,10 @@
 'use strict';
 
 /* ============================================================================
- * Claude Usage Dashboard · server.js — local HTTP server
+ * Tokwise · server.js — local HTTP server
  * ----------------------------------------------------------------------------
  * ✦  Customized by ShaonPro · https://github.com/ShaonPro
- *     Pro-grade plug-and-play: `npx github:ShaonPro/claude-usage`
+ *     Pro-grade plug-and-play: `npx github:ShaonPro/Tokwise`
  * ==========================================================================*/
 
 /**
@@ -17,9 +17,11 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { execFile } = require('child_process');
-const { buildStats, buildSessionDetail, readLiveFromJSONL, DB_PATH } = require('./stats');
+const { buildStats, buildSessionDetail, readLiveFromJSONL, detectSources, DB_PATH } = require('./stats');
 
-const PORT = parseInt(process.env.PORT || '47821', 10);
+// Default port 47776 — ends in 776 = "PRO" on a phone keypad (a small ShaonPro
+// signature). High range keeps it clear of common dev ports; override with PORT.
+const PORT = parseInt(process.env.PORT || '47776', 10);
 const HOST = process.env.HOST || '127.0.0.1';
 const HTML_FILE = path.join(__dirname, 'dashboard.html');
 const PORT_RETRIES = 10;
@@ -50,8 +52,16 @@ const server = http.createServer((req, res) => {
       });
     }
 
+    if (u.pathname === '/api/sources') {
+      // which AI tools are present on this machine (drives the UI switcher)
+      return send(res, 200, 'application/json', JSON.stringify({ sources: detectSources() }), {
+        'Cache-Control': 'no-store',
+      });
+    }
+
     if (u.pathname === '/api/stats') {
       const data = buildStats({
+        source: u.searchParams.get('source') || 'claude',
         project: u.searchParams.get('project') || 'all',
         range: u.searchParams.get('range') || 'all',
         since: u.searchParams.get('since') || undefined,
@@ -77,9 +87,17 @@ const server = http.createServer((req, res) => {
       });
     }
 
+    if (u.pathname === '/html2canvas.min.js') {
+      const file = path.join(__dirname, 'html2canvas.min.js');
+      if (!fs.existsSync(file)) return send(res, 404, 'text/plain', 'Not found');
+      return send(res, 200, 'application/javascript; charset=utf-8', fs.readFileSync(file), {
+        'Cache-Control': 'public, max-age=86400, immutable',
+      });
+    }
+
     if (u.pathname === '/api/live') {
       // genuine real-time data — reads the latest JSONL tail bypassing usage.db
-      const data = readLiveFromJSONL();
+      const data = readLiveFromJSONL(u.searchParams.get('source') || 'claude');
       return send(
         res,
         200,
@@ -157,7 +175,7 @@ server.on('listening', () => {
   console.log(
     [
       '',
-      '  \x1b[38;5;209m✦\x1b[0m  \x1b[1mClaude Usage Dashboard\x1b[0m',
+      '  \x1b[38;5;209m✦\x1b[0m  \x1b[1mTokwise\x1b[0m  \x1b[38;5;245mlocal AI usage dashboard\x1b[0m',
       '',
       `     Dashboard   \x1b[38;5;209m${url}\x1b[0m`,
       `     Data        \x1b[38;5;245m${DB_PATH}\x1b[0m`,

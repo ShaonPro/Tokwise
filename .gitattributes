@@ -1,2 +1,19 @@
-# Auto detect text files and perform LF normalization
+# Default: let Git normalise text files to LF in the repo.
 * text=auto
+
+# Windows batch files MUST be CRLF — cmd.exe mis-parses LF-only parenthesised
+# `if (...)` blocks, which silently breaks claude-usage.bat on double-click.
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+
+# Shell scripts MUST stay LF even when checked out on Windows (WSL / Git Bash
+# choke on CRLF shebang lines).
+*.sh       text eol=lf
+*.command  text eol=lf
+
+# Binary assets — never run EOL or diff normalisation on these.
+*.png  binary
+*.jpg  binary
+*.gif  binary
+*.db   binary
+*.ico  binary

@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test (Node ${{ matrix.node }} · ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        # node:sqlite is stable from Node 22.13+/23.4+/24+. setup-node fetches
+        # the latest minor for each major, so '22' and '24' are both flag-free.
+        node: ['22', '24']
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Syntax-check every JS file
+        shell: bash
+        run: |
+          for f in server.js stats.js cli.js test/*.js; do
+            echo "node --check $f"
+            node --check "$f"
+          done
+
+      - name: Run test suite
+        run: npm test
+
+      - name: Smoke-boot the server (headless)
+        shell: bash
+        env:
+          NO_OPEN: '1'
+          PORT: '47999'
+        run: |
+          node server.js > server.log 2>&1 &
+          # poll /api/health for up to 15s instead of a fixed sleep
+          ok=""
+          for i in $(seq 1 15); do
+            if curl -fsS "http://127.0.0.1:47999/api/health" > /dev/null 2>&1; then ok=1; break; fi
+            sleep 1
+          done
+          if [ -z "$ok" ]; then echo "server did not come up"; cat server.log; exit 1; fi
+          echo "server booted + /api/health OK"
+          # Windows runners can't signal the native PID via bash 'kill' — use
+          # taskkill on the port owner there; plain kill everywhere else.
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            netstat -ano | grep ':47999' | awk '{print $5}' | sort -u \
+              | xargs -r -I{} taskkill //PID {} //F 2>/dev/null || true
+          else
+            kill %1 2>/dev/null || true
+          fi

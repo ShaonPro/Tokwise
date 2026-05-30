@@ -2,7 +2,7 @@
 'use strict';
 
 /* ============================================================================
- * Claude Usage Dashboard · cli.js — terminal report
+ * Tokwise · cli.js — terminal report
  * ----------------------------------------------------------------------------
  * ✦  Customized by ShaonPro · https://github.com/ShaonPro
  * ==========================================================================*/
@@ -21,12 +21,13 @@ function arg(name, def) {
 }
 if (args.includes('--help') || args.includes('-h')) {
   console.log(`
-  Claude Usage — terminal dashboard
+  Tokwise — terminal dashboard
 
   Usage:
     node cli.js [options]
 
   Options:
+    --source <claude|codex|all>     which AI tool (default: claude)
     --range  <7d|14d|30d|90d|all>   time window (default: all)
     --project <name>                filter to one project
     --json                          print raw JSON
@@ -106,7 +107,7 @@ function padL(s, n) {
 
 let data;
 try {
-  data = buildStats({ range: arg('range', 'all'), project: arg('project', 'all') });
+  data = buildStats({ source: arg('source', 'claude'), range: arg('range', 'all'), project: arg('project', 'all') });
 } catch (e) {
   console.error(`\n  ${C.coral}Error:${C.reset} ${e.message}\n`);
   process.exit(1);
@@ -129,7 +130,7 @@ const projLabel =
 // ---- header ---------------------------------------------------------------
 console.log('');
 console.log(
-  `  ${C.coral}${C.bold}✦  CLAUDE USAGE${C.reset}  ${C.faint}·${C.reset}  ${C.mute}${rangeLabel}${C.reset}  ${C.faint}·${C.reset}  ${C.mute}${projLabel}${C.reset}`
+  `  ${C.coral}${C.bold}✦  Tokwise${C.reset}  ${C.faint}·${C.reset}  ${C.mute}${rangeLabel}${C.reset}  ${C.faint}·${C.reset}  ${C.mute}${projLabel}${C.reset}`
 );
 if (data.range.first) {
   console.log(

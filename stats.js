@@ -1,7 +1,7 @@
 'use strict';
 
 /* ============================================================================
- * Claude Usage Dashboard · stats.js — data layer
+ * Tokwise · stats.js — data layer
  * ----------------------------------------------------------------------------
  * ✦  Customized by ShaonPro · https://github.com/ShaonPro
  *     "Pro" signature is sprinkled through the codebase. Type p-r-o on the
@@ -21,26 +21,36 @@ const SHAON_PRO = Object.freeze({
 });
 
 // node:sqlite is built into Node, but the rollout history is awkward:
-//   Node 22.5  – 22.6   exists, needs --experimental-sqlite flag
-//   Node 22.7  – 22.x   stable, no flag
-//   Node 23                stable
-//   Node 24+               stable (recommended)
-// We try to load it; if that fails we self-relaunch with the flag once
-// (so the user doesn't have to know which Node version they have).
+//   Node 22.5  – 22.12  exists, needs --experimental-sqlite flag (unflagged 22.13)
+//   Node 23.0  – 23.3   exists, needs --experimental-sqlite flag (unflagged 23.4)
+//   Node 22.13+, 23.4+, 24+   stable, no flag (24+ recommended)
+// We try to load it; if that fails we self-relaunch ONCE with the flag (so the
+// user never has to know which CLI flag their Node version needs). The
+// relaunch condition is deliberately broad: when node:sqlite is genuinely
+// stable the require above SUCCEEDS and we never reach here, so covering any
+// 22.5+/23.x is safe — and the --experimental-sqlite flag is accepted as a
+// harmless no-op on versions where sqlite is already stable (verified on 24+).
 let DatabaseSync;
 try {
   ({ DatabaseSync } = require('node:sqlite'));
 } catch (err) {
   const nodeVer = process.versions.node;
   const [maj, min] = nodeVer.split('.').map(Number);
-  const isFlagRequiredRange =
-    (maj === 22 && min >= 5 && min <= 6) ||
-    /experimental/i.test(String(err && err.message));
+  // The real failure on a flag-required Node is ERR_UNKNOWN_BUILTIN_MODULE
+  // ("No such built-in module: node:sqlite") — note it does NOT contain the
+  // word "experimental", so we match on the module name and error code too.
+  const looksLikeMissingSqlite =
+    (err && err.code === 'ERR_UNKNOWN_BUILTIN_MODULE') ||
+    /node:sqlite|experimental/i.test(String(err && err.message));
+  const inFlagRange =
+    (maj === 22 && min >= 5) || maj === 23;
   const alreadyRetried = process.env._CU_SQLITE_RETRY === '1';
 
-  if (isFlagRequiredRange && !alreadyRetried) {
-    // Self-relaunch with --experimental-sqlite so end users don't have to
-    // figure out which CLI flag their Node version needs.
+  if ((inFlagRange || looksLikeMissingSqlite) && !alreadyRetried) {
+    // Self-relaunch with --experimental-sqlite. process.execPath is the
+    // absolute path to the node binary (correct even when it contains spaces,
+    // e.g. Windows "C:\Program Files\nodejs\node.exe", because spawnSync passes
+    // argv as an array — no shell, no quoting needed).
     const { spawnSync } = require('child_process');
     const args = ['--experimental-sqlite', ...process.argv.slice(1)];
     process.stderr.write(
@@ -55,8 +65,8 @@ try {
 
   console.error(
     `\n  Failed to load node:sqlite on Node ${nodeVer}.\n` +
-      `  The Claude Usage Dashboard needs the built-in node:sqlite module.\n\n` +
-      `  Easiest fix — upgrade Node to 22.7+ or 24+:\n` +
+      `  Tokwise needs the built-in node:sqlite module.\n\n` +
+      `  Easiest fix — upgrade Node to 22.13+, 23.4+, or 24+:\n` +
       `      https://nodejs.org\n\n` +
       `  Or rerun manually with the experimental flag:\n` +
       `      node --experimental-sqlite ${process.argv[1] || 'server.js'}\n\n` +
@@ -88,6 +98,28 @@ const PRICING = {
   'claude-haiku-4':    { in: 1,   out: 5,  cacheRead: 0.1,  cacheWrite: 1.25 },
   'claude-3-5-haiku':  { in: 0.8, out: 4,  cacheRead: 0.08, cacheWrite: 1 },
   'claude-haiku':      { in: 1,   out: 5,  cacheRead: 0.1,  cacheWrite: 1.25 },
+
+  // ---- OpenAI / Codex CLI (estimated API list prices, USD per 1M tokens) ----
+  // OpenAI has no separate "cache write" charge, so cacheWrite == in for these.
+  // Codex reports cached_input_tokens as a SUBSET of input; the adapter splits
+  // them into fresh-input + cacheRead before costing, so these rates apply
+  // cleanly. Prefix match (priceFor) picks the longest key, so the -mini/-nano
+  // overrides win over the bare family price.
+  'gpt-5.5':           { in: 1.25, out: 10,  cacheRead: 0.125, cacheWrite: 1.25 },
+  'gpt-5-codex':       { in: 1.25, out: 10,  cacheRead: 0.125, cacheWrite: 1.25 },
+  'gpt-5-nano':        { in: 0.05, out: 0.4, cacheRead: 0.005, cacheWrite: 0.05 },
+  'gpt-5-mini':        { in: 0.25, out: 2,   cacheRead: 0.025, cacheWrite: 0.25 },
+  'gpt-5':             { in: 1.25, out: 10,  cacheRead: 0.125, cacheWrite: 1.25 },
+  'gpt-4.1-mini':      { in: 0.4,  out: 1.6, cacheRead: 0.1,   cacheWrite: 0.4 },
+  'gpt-4.1-nano':      { in: 0.1,  out: 0.4, cacheRead: 0.025, cacheWrite: 0.1 },
+  'gpt-4.1':           { in: 2,    out: 8,   cacheRead: 0.5,   cacheWrite: 2 },
+  'gpt-4o-mini':       { in: 0.15, out: 0.6, cacheRead: 0.075, cacheWrite: 0.15 },
+  'gpt-4o':            { in: 2.5,  out: 10,  cacheRead: 1.25,  cacheWrite: 2.5 },
+  'o4-mini':           { in: 1.1,  out: 4.4, cacheRead: 0.275, cacheWrite: 1.1 },
+  'o3-mini':           { in: 1.1,  out: 4.4, cacheRead: 0.55,  cacheWrite: 1.1 },
+  'o3':                { in: 2,    out: 8,   cacheRead: 0.5,   cacheWrite: 2 },
+  'gpt-4':             { in: 2.5,  out: 10,  cacheRead: 1.25,  cacheWrite: 2.5 },
+  'codex':             { in: 1.25, out: 10,  cacheRead: 0.125, cacheWrite: 1.25 },
 };
 const DEFAULT_PRICE = { in: 3, out: 15, cacheRead: 0.3, cacheWrite: 3.75 };
 
@@ -123,7 +155,24 @@ function costOf(model, t) {
 
 function prettyModel(m) {
   if (!m || m === 'unknown') return 'Unknown';
-  let s = m.replace(/^claude-/, '').replace(/-\d{6,}$/, '');
+  // strip a trailing date stamp like -20251030 that some model ids carry
+  const id = m.replace(/-\d{6,}$/, '');
+
+  // OpenAI families
+  if (/^gpt-/i.test(id)) {
+    // gpt-5.5 → "GPT-5.5", gpt-5-codex → "GPT-5 Codex", gpt-4o → "GPT-4o"
+    const rest = id.slice(4);
+    const pretty = rest
+      .split('-')
+      .map((p) => (/^[a-z]+$/.test(p) ? p.charAt(0).toUpperCase() + p.slice(1) : p))
+      .join(' ');
+    return `GPT-${pretty}`;
+  }
+  if (/^o\d/i.test(id)) return id.replace(/-/g, ' '); // o3, o4-mini → "o4 mini"
+  if (/^codex/i.test(id)) return 'Codex';
+
+  // Claude families: claude-opus-4-5 → "Opus 4.5"
+  let s = id.replace(/^claude-/, '');
   const parts = s.split('-');
   const fam = parts.shift() || '';
   const ver = parts.join('.');
@@ -167,22 +216,292 @@ function totalTokens(a) {
   return a.input + a.output + a.cacheRead + a.cacheCreation;
 }
 
-function buildStats(opts = {}) {
-  if (!fs.existsSync(DB_PATH)) {
-    const e = new Error(`Claude usage database not found at ${DB_PATH}`);
-    e.code = 'NO_DB';
-    throw e;
-  }
-  const db = new DatabaseSync(DB_PATH, { readOnly: true });
+// ---------------------------------------------------------------------------
+// Sources. The dashboard reads more than one AI coding tool. Each "source"
+// resolves to the same normalized sessions/turns shape, so the entire
+// aggregation pipeline (compute) is shared and source-agnostic.
+//   claude → ~/.claude/usage.db          (SQLite, read directly)
+//   codex  → ~/.codex/sessions/**/*.jsonl (parsed into an in-memory SQLite)
+//   all    → both, merged in an in-memory SQLite
+// ---------------------------------------------------------------------------
+const CLAUDE_DB = DB_PATH;
+const CODEX_SESSIONS_DIR =
+  process.env.CLAUDE_USAGE_CODEX_DIR || path.join(os.homedir(), '.codex', 'sessions');
+const GPT5_CONTEXT_WINDOW = 272000; // fallback if a rollout omits model_context_window
+
+// in-memory schema mirrors Claude's usage.db so compute() runs unchanged
+const MEM_SCHEMA = `
+  CREATE TABLE sessions (
+    session_id      TEXT PRIMARY KEY,
+    project_name    TEXT,
+    first_timestamp TEXT,
+    last_timestamp  TEXT,
+    git_branch      TEXT,
+    model           TEXT
+  );
+  CREATE TABLE turns (
+    id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id            TEXT,
+    timestamp             TEXT,
+    model                 TEXT,
+    input_tokens          INTEGER DEFAULT 0,
+    output_tokens         INTEGER DEFAULT 0,
+    cache_read_tokens     INTEGER DEFAULT 0,
+    cache_creation_tokens INTEGER DEFAULT 0,
+    tool_name             TEXT
+  );
+`;
+
+function dirHasJsonl(dir) {
   try {
-    return compute(db, opts);
+    if (!fs.statSync(dir).isDirectory()) return false;
+  } catch (_) {
+    return false;
+  }
+  let found = false;
+  (function walk(d, depth) {
+    if (found || depth > 6) return;
+    let ents;
+    try { ents = fs.readdirSync(d, { withFileTypes: true }); } catch (_) { return; }
+    for (const e of ents) {
+      if (found) return;
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) walk(p, depth + 1);
+      else if (e.isFile() && p.endsWith('.jsonl')) found = true;
+    }
+  })(dir, 0);
+  return found;
+}
+
+// Which tools are present on this machine? Drives the UI source switcher.
+// Claude counts if EITHER the usage.db cache or live transcripts exist.
+function detectSources() {
+  return [
+    { id: 'claude', displayName: 'Claude Code',
+      present: fs.existsSync(CLAUDE_DB) || dirHasJsonl(PROJECTS_DIR) },
+    { id: 'codex',  displayName: 'Codex CLI',
+      present: dirHasJsonl(CODEX_SESSIONS_DIR) },
+  ];
+}
+
+function buildStats(opts = {}) {
+  const source = ['claude', 'codex', 'all'].includes(opts.source) ? opts.source : 'claude';
+
+  // Fast path — Claude only. EXACTLY the original behaviour, zero overhead,
+  // Every source now assembles an in-memory SQLite (Claude schema) from the
+  // tool's real-time JSONL transcripts, then runs the same compute() over it.
+  //
+  // IMPORTANT — Claude Code's ~/.claude/usage.db is a CACHE that Claude Code
+  // only rebuilds occasionally (on start/quit), so it goes stale for days.
+  // The transcripts in ~/.claude/projects/**/*.jsonl are the real-time source
+  // of truth — written on every turn. We read those (mtime-cached) so the
+  // numbers are always current. usage.db is used ONLY as a last-resort fallback
+  // when no transcripts exist.
+  const mem = new DatabaseSync(':memory:');
+  try {
+    mem.exec(MEM_SCHEMA);
+    let dbSize = 0;
+    let contextWindow = 0;
+    let loadedAny = false;
+
+    if (source === 'claude' || source === 'all') {
+      const c = loadClaudeTranscriptsInto(mem);
+      dbSize += c.sizeBytes;
+      if (c.count) loadedAny = true;
+    }
+    if (source === 'codex' || source === 'all') {
+      const codex = loadCodexInto(mem);
+      dbSize += codex.sizeBytes;
+      if (codex.count) loadedAny = true;
+      if (source === 'codex' && codex.contextWindow) contextWindow = codex.contextWindow;
+    }
+
+    // Claude requested but nothing found anywhere (no transcripts, no usage.db).
+    if (!loadedAny && source === 'claude') {
+      const e = new Error(`No Claude usage data found (looked in ${PROJECTS_DIR} and ${CLAUDE_DB})`);
+      e.code = 'NO_DB';
+      throw e;
+    }
+
+    const computeOpts = {
+      ...opts,
+      source,
+      _dbPath:
+        source === 'codex' ? CODEX_SESSIONS_DIR
+        : source === 'all' ? 'claude + codex transcripts'
+        : PROJECTS_DIR,
+      _dbSize: dbSize,
+    };
+    if (source === 'codex' && contextWindow) computeOpts._contextWindow = contextWindow;
+    return compute(mem, computeOpts);
   } finally {
-    try {
-      db.close();
-    } catch (_) {
-      /* ignore */
+    try { mem.close(); } catch (_) {}
+  }
+}
+
+// ---- Claude transcripts → normalized turns (the real-time source of truth) ---
+// usage.db is a stale cache; ~/.claude/projects/**/*.jsonl is written live.
+// We parse those, cached by file mtime so only changed files re-parse.
+const _claudeCache = new Map(); // path -> { mtime, turns: [normalized rows] }
+
+function parseClaudeTranscript(filePath) {
+  let text;
+  try { text = fs.readFileSync(filePath, 'utf8'); } catch (_) { return []; }
+  const rows = [];
+  for (const line of text.split('\n')) {
+    // cheap prefilter — only assistant turns carry usage; skip everything else
+    if (!line || line.indexOf('"usage"') < 0 || line.indexOf('assistant') < 0) continue;
+    let j;
+    try { j = JSON.parse(line); } catch (_) { continue; }
+    if (j.type !== 'assistant' || !j.message || !j.message.usage) continue;
+    const u = j.message.usage;
+    let tool = '';
+    if (Array.isArray(j.message.content)) {
+      const tu = j.message.content.find((x) => x && x.type === 'tool_use');
+      if (tu && tu.name) tool = tu.name;
+    }
+    rows.push({
+      sid: j.sessionId || path.basename(filePath, '.jsonl'),
+      ts: j.timestamp,
+      model: j.message.model || 'unknown',
+      inp: u.input_tokens || 0,
+      outp: u.output_tokens || 0,
+      cr: u.cache_read_input_tokens || 0,
+      cc: u.cache_creation_input_tokens || 0,
+      tool,
+      project: deriveProject(j.cwd),
+      branch: j.gitBranch || '',
+    });
+  }
+  return rows;
+}
+
+function getAllClaudeTurns() {
+  const files = findJsonlFiles(); // [{ path, mtime, kind }]
+  const all = [];
+  for (const f of files) {
+    const cached = _claudeCache.get(f.path);
+    if (cached && cached.mtime === f.mtime) {
+      all.push(...cached.turns);
+      continue;
+    }
+    const turns = parseClaudeTranscript(f.path);
+    _claudeCache.set(f.path, { mtime: f.mtime, turns });
+    all.push(...turns);
+  }
+  // evict entries for files that vanished (keeps the cache from growing forever)
+  if (_claudeCache.size > files.length * 1.5) {
+    const live = new Set(files.map((f) => f.path));
+    for (const k of _claudeCache.keys()) if (!live.has(k)) _claudeCache.delete(k);
+  }
+  return all;
+}
+
+function loadClaudeTranscriptsInto(memDb) {
+  const turns = getAllClaudeTurns();
+  if (!turns.length) {
+    // No live transcripts on disk → fall back to the (possibly stale) usage.db
+    // cache so the user/demo still sees data. This keeps the claude and "all"
+    // paths consistent.
+    const sz = copyClaudeInto(memDb);
+    if (sz > 0) {
+      const n = memDb.prepare('SELECT COUNT(*) n FROM turns').get().n;
+      return { count: n, sizeBytes: sz, stale: true };
+    }
+    return { count: 0, sizeBytes: 0 };
+  }
+  // derive one session record per sessionId
+  const sess = new Map();
+  for (const t of turns) {
+    let s = sess.get(t.sid);
+    if (!s) {
+      s = { sid: t.sid, project: t.project, branch: t.branch, first: t.ts, last: t.ts, models: new Map() };
+      sess.set(t.sid, s);
+    }
+    if (t.ts < s.first) s.first = t.ts;
+    if (t.ts > s.last) s.last = t.ts;
+    if (t.project && t.project !== '(unknown)') s.project = t.project;
+    if (t.branch) s.branch = t.branch;
+    s.models.set(t.model, (s.models.get(t.model) || 0) + 1);
+  }
+  const insS = memDb.prepare(
+    'INSERT OR REPLACE INTO sessions (session_id, project_name, first_timestamp, last_timestamp, git_branch, model) VALUES (?,?,?,?,?,?)'
+  );
+  const insT = memDb.prepare(
+    'INSERT INTO turns (session_id, timestamp, model, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, tool_name) VALUES (?,?,?,?,?,?,?,?)'
+  );
+  memDb.exec('BEGIN');
+  for (const s of sess.values()) {
+    let dm = 'unknown', dn = -1;
+    for (const [m, n] of s.models) if (n > dn) { dn = n; dm = m; }
+    insS.run(s.sid, s.project, s.first, s.last, s.branch, dm);
+  }
+  for (const t of turns) {
+    insT.run(t.sid, t.ts, t.model, t.inp, t.outp, t.cr, t.cc, t.tool || null);
+  }
+  memDb.exec('COMMIT');
+  return { count: turns.length, sizeBytes: 0 };
+}
+
+// (kept for reference / fallback tooling — copies usage.db into an in-memory db)
+function copyClaudeInto(memDb) {
+  if (!fs.existsSync(CLAUDE_DB)) return 0;
+  const src = new DatabaseSync(CLAUDE_DB, { readOnly: true });
+  try {
+    const sessions = src
+      .prepare('SELECT session_id, project_name, first_timestamp, last_timestamp, git_branch, model FROM sessions')
+      .all();
+    const turns = src
+      .prepare('SELECT session_id, timestamp, model, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, tool_name FROM turns')
+      .all();
+    const insS = memDb.prepare(
+      'INSERT OR REPLACE INTO sessions (session_id, project_name, first_timestamp, last_timestamp, git_branch, model) VALUES (?,?,?,?,?,?)'
+    );
+    const insT = memDb.prepare(
+      'INSERT INTO turns (session_id, timestamp, model, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, tool_name) VALUES (?,?,?,?,?,?,?,?)'
+    );
+    memDb.exec('BEGIN');
+    for (const s of sessions)
+      insS.run(s.session_id, s.project_name, s.first_timestamp, s.last_timestamp, s.git_branch, s.model);
+    for (const t of turns)
+      insT.run(t.session_id, t.timestamp, t.model, t.input_tokens, t.output_tokens, t.cache_read_tokens, t.cache_creation_tokens, t.tool_name);
+    memDb.exec('COMMIT');
+    return fs.statSync(CLAUDE_DB).size;
+  } finally {
+    try { src.close(); } catch (_) {}
+  }
+}
+
+// Parse all Codex rollouts and insert normalized rows into the in-memory db.
+function loadCodexInto(memDb) {
+  const files = findCodexSessionFiles();
+  if (!files.length) return { count: 0, sizeBytes: 0, contextWindow: 0 };
+  const insS = memDb.prepare(
+    'INSERT OR REPLACE INTO sessions (session_id, project_name, first_timestamp, last_timestamp, git_branch, model) VALUES (?,?,?,?,?,?)'
+  );
+  const insT = memDb.prepare(
+    'INSERT INTO turns (session_id, timestamp, model, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, tool_name) VALUES (?,?,?,?,?,?,?,?)'
+  );
+  let count = 0;
+  let sizeBytes = 0;
+  let contextWindow = 0;
+  memDb.exec('BEGIN');
+  for (const f of files) {
+    sizeBytes += f.size;
+    const s = parseCodexRollout(f.path);
+    if (!s) continue;
+    contextWindow = Math.max(contextWindow, s.contextWindow || 0);
+    insS.run(s.sessionId, s.project, s.first, s.last, s.branch || '', s.model);
+    for (const t of s.turns) {
+      insT.run(
+        s.sessionId, t.ts, t.model || s.model,
+        t.input, t.output, t.cacheRead, t.cacheCreation, t.tool || null
+      );
+      count++;
     }
   }
+  memDb.exec('COMMIT');
+  return { count, sizeBytes, contextWindow: contextWindow || GPT5_CONTEXT_WINDOW };
 }
 
 function compute(db, opts) {
@@ -447,8 +766,9 @@ function compute(db, opts) {
       'SELECT MAX(cache_read_tokens + cache_creation_tokens + input_tokens) m FROM turns'
     )
     .get();
-  const contextWindow =
-    gp && gp.m > CONTEXT_WINDOW ? 1000000 : CONTEXT_WINDOW;
+  const contextWindow = opts._contextWindow
+    ? opts._contextWindow
+    : (gp && gp.m > CONTEXT_WINDOW ? 1000000 : CONTEXT_WINDOW);
 
   // ---- per-session health classification ----
   const NOW_TS = Date.now();
@@ -630,8 +950,14 @@ function compute(db, opts) {
   return {
     meta: {
       generatedAt: new Date().toISOString(),
-      dbPath: DB_PATH,
-      dbSizeBytes: fs.statSync(DB_PATH).size,
+      source: opts.source || 'claude',
+      dbPath: opts._dbPath || DB_PATH,
+      dbSizeBytes:
+        opts._dbSize != null
+          ? opts._dbSize
+          : fs.existsSync(DB_PATH)
+          ? fs.statSync(DB_PATH).size
+          : 0,
       projects: allProjects,
       firstEver: span.a,
       lastEver: span.b,
@@ -847,128 +1173,120 @@ function buildInsights(ctx) {
 }
 
 // ---- session deep-dive ----
+// Gather all turns for one session id from the real-time transcripts —
+// Claude (~/.claude/projects) first, then Codex rollouts. Returns normalized
+// turns + project/branch, or null if the session isn't found.
+function collectSessionTurns(id) {
+  const claude = getAllClaudeTurns().filter((t) => t.sid === id);
+  if (claude.length) {
+    const project =
+      (claude.find((t) => t.project && t.project !== '(unknown)') || claude[0]).project;
+    const branch = (claude.find((t) => t.branch) || {}).branch || '';
+    const turns = claude
+      .map((t) => ({ ts: t.ts, model: t.model, input: t.inp, output: t.outp,
+        cacheRead: t.cr, cacheCreation: t.cc, tool: t.tool || '' }))
+      .sort((a, b) => new Date(a.ts) - new Date(b.ts));
+    return { turns, project, branch };
+  }
+  // Codex — the session id is embedded in the rollout filename
+  const codexFiles = findCodexSessionFiles();
+  const candidates = codexFiles.filter((f) => f.path.includes(id));
+  for (const f of (candidates.length ? candidates : codexFiles)) {
+    const s = parseCodexRollout(f.path);
+    if (s && s.sessionId === id) {
+      const turns = s.turns
+        .map((t) => ({ ts: t.ts, model: t.model || s.model, input: t.input, output: t.output,
+          cacheRead: t.cacheRead, cacheCreation: t.cacheCreation, tool: '' }))
+        .sort((a, b) => new Date(a.ts) - new Date(b.ts));
+      return { turns, project: s.project, branch: s.branch };
+    }
+  }
+  return null;
+}
+
 function buildSessionDetail(id) {
-  if (!fs.existsSync(DB_PATH)) {
-    const e = new Error(`Claude usage database not found at ${DB_PATH}`);
-    e.code = 'NO_DB';
-    throw e;
-  }
-  const db = new DatabaseSync(DB_PATH, { readOnly: true });
-  try {
-    const session = db
-      .prepare('SELECT * FROM sessions WHERE session_id = ?')
-      .get(id);
-    if (!session) return null;
-    const turns = db
-      .prepare(
-        `SELECT timestamp ts, model, input_tokens inp, output_tokens outp,
-                cache_read_tokens cr, cache_creation_tokens cc, tool_name tool
-           FROM turns WHERE session_id = ? ORDER BY timestamp ASC`
-      )
-      .all(id);
+  const found = collectSessionTurns(id);
+  if (!found || !found.turns.length) return null;
+  const { turns: raw, project, branch } = found;
 
-    const turnsOut = turns.map((t, i) => {
-      const tok = {
-        input: t.inp || 0,
-        output: t.outp || 0,
-        cacheRead: t.cr || 0,
-        cacheCreation: t.cc || 0,
-      };
-      return {
-        idx: i,
-        ts: t.ts,
-        model: t.model || 'unknown',
-        modelDisplay: prettyModel(t.model || 'unknown'),
-        tool: t.tool || '',
-        ...tok,
-        contextSize: tok.input + tok.cacheRead + tok.cacheCreation,
-        cost: costOf(t.model, tok),
-      };
-    });
-
-    const byToolMap = new Map();
-    let toolCalls = 0;
-    for (const t of turns)
-      if (t.tool) {
-        byToolMap.set(t.tool, (byToolMap.get(t.tool) || 0) + 1);
-        toolCalls++;
-      }
-    const byTool = [...byToolMap]
-      .map(([tool, count]) => ({ tool, count }))
-      .sort((a, b) => b.count - a.count);
-
-    const modelMap = new Map();
-    for (const t of turns) {
-      const m = t.model || 'unknown';
-      modelMap.set(m, (modelMap.get(m) || 0) + 1);
-    }
-    const models = [...modelMap]
-      .map(([m, n]) => ({ model: m, display: prettyModel(m), turns: n }))
-      .sort((a, b) => b.turns - a.turns);
-
-    const totals = {
-      turns: turns.length,
-      input: 0,
-      output: 0,
-      cacheRead: 0,
-      cacheCreation: 0,
-      cost: 0,
-      toolCalls,
+  const turnsOut = raw.map((t, i) => {
+    const tok = {
+      input: t.input || 0,
+      output: t.output || 0,
+      cacheRead: t.cacheRead || 0,
+      cacheCreation: t.cacheCreation || 0,
     };
-    let peakContext = 0;
-    for (const t of turnsOut) {
-      totals.input += t.input;
-      totals.output += t.output;
-      totals.cacheRead += t.cacheRead;
-      totals.cacheCreation += t.cacheCreation;
-      totals.cost += t.cost;
-      if (t.contextSize > peakContext) peakContext = t.contextSize;
-    }
-    const avgContext = turnsOut.length
-      ? turnsOut.reduce((a, t) => a + t.contextSize, 0) / turnsOut.length
-      : 0;
-
-    // downsampled timeline for charting (keep up to 200 points)
-    const slim = turnsOut.map((t) => ({
-      idx: t.idx,
-      ts: t.ts,
-      ctx: t.contextSize,
-      cost: t.cost,
-      tool: t.tool,
-    }));
-    const timeline = downsample(slim, 200);
-
-    // first / last turn highlights
-    const last = turnsOut[turnsOut.length - 1] || null;
-
     return {
-      session: {
-        id: session.session_id,
-        project: session.project_name,
-        branch: session.git_branch,
-        first: session.first_timestamp,
-        last: session.last_timestamp,
-        durationMin: Math.max(
-          0,
-          ((new Date(session.last_timestamp) - new Date(session.first_timestamp)) /
-            60000) ||
-            0
-        ),
-      },
-      totals: { ...totals, peakContext, avgContext },
-      models,
-      byTool,
-      timeline,
-      turnCount: turns.length,
-      lastTurn: last,
+      idx: i,
+      ts: t.ts,
+      model: t.model || 'unknown',
+      modelDisplay: prettyModel(t.model || 'unknown'),
+      tool: t.tool || '',
+      ...tok,
+      contextSize: tok.input + tok.cacheRead + tok.cacheCreation,
+      cost: costOf(t.model, tok),
     };
-  } finally {
-    try {
-      db.close();
-    } catch (_) {
-      /* ignore */
+  });
+
+  const byToolMap = new Map();
+  let toolCalls = 0;
+  for (const t of raw)
+    if (t.tool) {
+      byToolMap.set(t.tool, (byToolMap.get(t.tool) || 0) + 1);
+      toolCalls++;
     }
+  const byTool = [...byToolMap]
+    .map(([tool, count]) => ({ tool, count }))
+    .sort((a, b) => b.count - a.count);
+
+  const modelMap = new Map();
+  for (const t of raw) {
+    const m = t.model || 'unknown';
+    modelMap.set(m, (modelMap.get(m) || 0) + 1);
   }
+  const models = [...modelMap]
+    .map(([m, n]) => ({ model: m, display: prettyModel(m), turns: n }))
+    .sort((a, b) => b.turns - a.turns);
+
+  const totals = {
+    turns: raw.length,
+    input: 0, output: 0, cacheRead: 0, cacheCreation: 0, cost: 0, toolCalls,
+  };
+  let peakContext = 0;
+  for (const t of turnsOut) {
+    totals.input += t.input;
+    totals.output += t.output;
+    totals.cacheRead += t.cacheRead;
+    totals.cacheCreation += t.cacheCreation;
+    totals.cost += t.cost;
+    if (t.contextSize > peakContext) peakContext = t.contextSize;
+  }
+  const avgContext = turnsOut.length
+    ? turnsOut.reduce((a, t) => a + t.contextSize, 0) / turnsOut.length
+    : 0;
+
+  const slim = turnsOut.map((t) => ({ idx: t.idx, ts: t.ts, ctx: t.contextSize, cost: t.cost, tool: t.tool }));
+  const timeline = downsample(slim, 200);
+  const last = turnsOut[turnsOut.length - 1] || null;
+  const first = raw[0].ts;
+  const lastTs = raw[raw.length - 1].ts;
+
+  return {
+    session: {
+      id,
+      project,
+      branch,
+      first,
+      last: lastTs,
+      durationMin: Math.max(0, ((new Date(lastTs) - new Date(first)) / 60000) || 0),
+    },
+    totals: { ...totals, peakContext, avgContext },
+    models,
+    byTool,
+    timeline,
+    turnCount: raw.length,
+    lastTurn: last,
+  };
 }
 
 // ============================ TRUE LIVE (JSONL tail) ============================
@@ -978,7 +1296,8 @@ function buildSessionDetail(id) {
 // real-time activity ("LIVE"), we read the most-recently-modified JSONL
 // directly and parse its tail.
 
-const PROJECTS_DIR = path.join(os.homedir(), '.claude', 'projects');
+const PROJECTS_DIR =
+  process.env.CLAUDE_USAGE_PROJECTS_DIR || path.join(os.homedir(), '.claude', 'projects');
 
 function deriveProject(cwd) {
   if (!cwd) return '(unknown)';
@@ -989,6 +1308,111 @@ function deriveProject(cwd) {
   const parts = cwd.split(/[\\/]/).filter(Boolean);
   if (parts.length < 2) return parts[0] || '(unknown)';
   return parts.slice(-2).join('/');
+}
+
+// ============================ CODEX CLI adapter ============================
+// Codex writes per-session rollouts to ~/.codex/sessions/YYYY/MM/DD/
+// rollout-<ISO>-<uuid>.jsonl. Each line is { timestamp, type, payload }.
+// The lines we care about:
+//   session_meta  → id, cwd
+//   turn_context  → model (per turn; usually constant within a session)
+//   event_msg / token_count → info.last_token_usage (the per-turn delta) with
+//     input_tokens (INCLUDES cached), cached_input_tokens, output_tokens, and
+//     info.model_context_window.
+// We map each token_count event to one normalized "turn" — the same shape and
+// billing semantics as a Claude turn (each is one billable API call):
+//   input  = input_tokens - cached_input_tokens   (fresh prompt)
+//   cacheRead = cached_input_tokens               (cheap re-read)
+//   cacheCreation = 0                             (Codex has no separate write)
+//   output = output_tokens                        (already includes reasoning)
+function findCodexSessionFiles() {
+  if (!fs.existsSync(CODEX_SESSIONS_DIR)) return [];
+  const out = [];
+  (function walk(dir, depth) {
+    if (depth > 6) return;
+    let ents;
+    try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch (_) { return; }
+    for (const e of ents) {
+      const p = path.join(dir, e.name);
+      try {
+        if (e.isDirectory()) walk(p, depth + 1);
+        else if (e.isFile() && /^rollout-.*\.jsonl$/.test(e.name)) {
+          const st = fs.statSync(p);
+          out.push({ path: p, mtime: st.mtimeMs, size: st.size });
+        }
+      } catch (_) {}
+    }
+  })(CODEX_SESSIONS_DIR, 0);
+  return out;
+}
+
+function parseCodexRollout(filePath) {
+  let text;
+  try { text = fs.readFileSync(filePath, 'utf8'); } catch (_) { return null; }
+  const lines = text.split('\n');
+  let sessionId = null, cwd = '', branch = '', curModel = '';
+  let first = null, last = null, contextWindow = 0;
+  const turns = [];
+  for (const line of lines) {
+    if (!line) continue;
+    // Prefilter: rollout response_item lines can be multi-MB (base64 images).
+    // Only JSON.parse the three small line kinds we actually need.
+    if (
+      line.indexOf('token_count') < 0 &&
+      line.indexOf('session_meta') < 0 &&
+      line.indexOf('turn_context') < 0
+    ) continue;
+    let j;
+    try { j = JSON.parse(line); } catch (_) { continue; }
+    const p = j.payload || {};
+    const type = p.type || j.type;
+    const ts = j.timestamp;
+    if (type === 'session_meta') {
+      sessionId = p.id || sessionId;
+      cwd = p.cwd || cwd;
+      if (p.git && p.git.branch) branch = p.git.branch;
+    } else if (type === 'turn_context') {
+      if (p.model) curModel = p.model;
+      if (p.cwd && !cwd) cwd = p.cwd;
+    } else if (type === 'token_count') {
+      const info = p.info || {};
+      if (info.model_context_window) {
+        contextWindow = Math.max(contextWindow, info.model_context_window);
+      }
+      const u = info.last_token_usage;
+      if (u && (u.input_tokens || u.output_tokens)) {
+        const cached = u.cached_input_tokens || 0;
+        const fresh = Math.max(0, (u.input_tokens || 0) - cached);
+        turns.push({
+          ts,
+          model: curModel || 'gpt-5',
+          input: fresh,
+          cacheRead: cached,
+          cacheCreation: 0,
+          output: u.output_tokens || 0,
+          tool: '', // Codex tool calls live in multi-MB response_item lines; skipped for speed
+        });
+        if (!first || ts < first) first = ts;
+        if (!last || ts > last) last = ts;
+      }
+    }
+  }
+  if (!sessionId) {
+    const m = path.basename(filePath).match(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i);
+    sessionId = m ? m[1] : path.basename(filePath);
+  }
+  if (!turns.length) return null;
+  return {
+    sessionId,
+    cwd,
+    branch,
+    model: curModel || 'gpt-5',
+    project: deriveProject(cwd),
+    first,
+    last,
+    contextWindow,
+    turns,
+  };
 }
 
 function tailRead(filePath, maxBytes) {
@@ -1087,17 +1511,44 @@ function findJsonlFiles() {
   return out;
 }
 
-function readLiveFromJSONL() {
+// Genuine real-time view, source-aware. claude → ~/.claude/projects JSONL,
+// codex → ~/.codex/sessions rollouts, all → both merged (newest first).
+function readLiveFromJSONL(source) {
+  const src = ['claude', 'codex', 'all'].includes(source) ? source : 'claude';
+  const nowT = Date.now();
+  let sessions = [];
+  let activeFiles = [];
+
+  if (src === 'claude' || src === 'all') {
+    const r = readClaudeLive(nowT);
+    if (r) { sessions.push(...r.sessions); activeFiles.push(...r.activeFiles); }
+  }
+  if (src === 'codex' || src === 'all') {
+    const r = readCodexLive(nowT);
+    if (r) { sessions.push(...r.sessions); activeFiles.push(...r.activeFiles); }
+  }
+  if (!sessions.length) return null;
+
+  sessions.sort((a, b) => new Date(b.last) - new Date(a.last));
+  sessions = sessions.slice(0, 6);
+  return {
+    asOf: new Date().toISOString(),
+    count: sessions.length,
+    sessions,
+    activeFiles: activeFiles
+      .sort((a, b) => a.ageMs - b.ageMs)
+      .slice(0, 10),
+  };
+}
+
+function readClaudeLive(nowT) {
   const files = findJsonlFiles();
   if (!files.length) return null;
   files.sort((a, b) => b.mtime - a.mtime);
-  const nowT = Date.now();
   const ACTIVE_WINDOW_MS = 30 * 60 * 1000;       // main sessions: any file touched in 30m
   const SUBAGENT_WINDOW_MS = 5 * 60 * 1000;      // subagents: only if updated in last 5m (still running)
   const MAX_SESSIONS = 6;
 
-  // Filter: main sessions in the 30m window; subagents only if very recent
-  // (subagent files become noise once the agent completes).
   let active = files.filter((f) => {
     const age = nowT - f.mtime;
     if (f.kind === 'subagent') return age < SUBAGENT_WINDOW_MS;
@@ -1124,6 +1575,7 @@ function readLiveFromJSONL() {
       modelDisplay: newest.modelDisplay,
       last: newest.ts,
       kind: f.kind,            // 'main' or 'subagent'
+      source: 'claude',
       filePath: f.path,
       fileMtime: new Date(f.mtime).toISOString(),
       ageMs: nowT - new Date(newest.ts).getTime(),
@@ -1138,10 +1590,7 @@ function readLiveFromJSONL() {
     });
   }
   if (!sessions.length) return null;
-
   return {
-    asOf: new Date().toISOString(),
-    count: sessions.length,
     sessions,
     activeFiles: files
       .filter((f) => nowT - f.mtime < 120000)
@@ -1150,8 +1599,81 @@ function readLiveFromJSONL() {
         path: f.path,
         mtime: new Date(f.mtime).toISOString(),
         kind: f.kind,
+        source: 'claude',
         ageMs: nowT - f.mtime,
       })),
+  };
+}
+
+function readCodexLive(nowT) {
+  const files = findCodexSessionFiles();
+  if (!files.length) return null;
+  files.sort((a, b) => b.mtime - a.mtime);
+  const ACTIVE_WINDOW_MS = 30 * 60 * 1000;
+  // Codex rollouts can be multi-MB; only parse genuinely-active files so live
+  // polling stays cheap when Codex isn't running (no stale fallback).
+  const active = files.filter((f) => nowT - f.mtime < ACTIVE_WINDOW_MS).slice(0, 6);
+  if (!active.length) return null;
+
+  const win5ms = 5 * 60 * 1000;
+  const sum = (arr, fn) => arr.reduce((a, x) => a + (fn(x) || 0), 0);
+  const sessions = [];
+
+  for (const f of active) {
+    const s = parseCodexRollout(f.path);
+    if (!s || !s.turns.length) continue;
+    const turns = s.turns.slice(-30).map((t) => {
+      const model = t.model || s.model;
+      const tok = { input: t.input, output: t.output, cacheRead: t.cacheRead, cacheCreation: t.cacheCreation };
+      return {
+        ts: t.ts,
+        sessionId: s.sessionId,
+        project: s.project,
+        cwd: s.cwd,
+        branch: s.branch,
+        model,
+        modelDisplay: prettyModel(model),
+        tool: '',
+        ...tok,
+        totalTokens: tok.input + tok.output + tok.cacheRead + tok.cacheCreation,
+        cost: costOf(model, tok),
+      };
+    });
+    const newest = turns[turns.length - 1];
+    const w5 = turns.filter((t) => nowT - new Date(t.ts).getTime() <= win5ms);
+    sessions.push({
+      sessionId: s.sessionId,
+      cwd: s.cwd,
+      project: s.project,
+      branch: s.branch,
+      model: newest.model,
+      modelDisplay: newest.modelDisplay,
+      last: newest.ts,
+      kind: 'main',
+      source: 'codex',
+      filePath: f.path,
+      fileMtime: new Date(f.mtime).toISOString(),
+      ageMs: nowT - new Date(newest.ts).getTime(),
+      turnCount: turns.length,
+      turns: turns.slice().reverse(),
+      last5: {
+        turns: w5.length,
+        tools: 0,
+        tokens: sum(w5, (t) => t.totalTokens),
+        cost: sum(w5, (t) => t.cost),
+      },
+    });
+  }
+  if (!sessions.length) return null;
+  return {
+    sessions,
+    activeFiles: active.slice(0, 10).map((f) => ({
+      path: f.path,
+      mtime: new Date(f.mtime).toISOString(),
+      kind: 'main',
+      source: 'codex',
+      ageMs: nowT - f.mtime,
+    })),
   };
 }
 
@@ -1159,10 +1681,17 @@ module.exports = {
   buildStats,
   buildSessionDetail,
   readLiveFromJSONL,
+  detectSources,
   priceFor,
   costOf,
   prettyModel,
   PRICING,
   DB_PATH,
+  CODEX_SESSIONS_DIR,
   RANGES,
+  // exported for the test suite (and any downstream tooling)
+  deriveProject,
+  classifyHealth,
+  parseCodexRollout,
+  findCodexSessionFiles,
 };

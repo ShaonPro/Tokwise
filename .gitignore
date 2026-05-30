@@ -28,6 +28,3 @@ desktop.ini
 dist/
 build/
 .cache/
-
-# Generated demo data (regenerate with `node scripts/seed-demo.js`)
-demo-usage.db

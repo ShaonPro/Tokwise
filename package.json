@@ -1,15 +1,16 @@
 {
-  "name": "claude-usage",
+  "name": "tokwise",
   "version": "1.0.0",
-  "description": "Premium local dashboard + real-time live monitor for Claude Code usage. Zero dependencies. Reads ~/.claude/usage.db and JSONL transcripts read-only; nothing leaves your machine.",
+  "description": "Tokwise — local-first usage, cost & live-monitor dashboard for AI coding tools (Claude Code + Codex CLI). Zero dependencies; reads your transcripts read-only; nothing leaves your machine.",
   "bin": {
-    "claude-usage": "./server.js",
-    "claude-usage-cli": "./cli.js"
+    "tokwise": "./server.js",
+    "tokwise-cli": "./cli.js"
   },
   "scripts": {
     "start": "node server.js",
     "dashboard": "node server.js",
-    "cli": "node cli.js"
+    "cli": "node cli.js",
+    "test": "node --test test/stats.test.js"
   },
   "engines": {
     "node": ">=22.5.0"
@@ -17,6 +18,8 @@
   "keywords": [
     "claude",
     "claude-code",
+    "codex",
+    "openai",
     "anthropic",
     "dashboard",
     "usage",
@@ -24,7 +27,7 @@
     "tokens",
     "cost",
     "live-monitor",
-    "local",
+    "local-first",
     "zero-dependencies"
   ],
   "author": {
@@ -37,19 +40,19 @@
     "stats.js",
     "cli.js",
     "dashboard.html",
-    "claude-usage.command",
-    "claude-usage.bat",
-    "claude-usage.sh",
+    "html2canvas.min.js",
+    "tokwise.command",
+    "tokwise.bat",
+    "tokwise.sh",
     "README.md",
     "LICENSE"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ShaonPro/Token-Usage.git"
+    "url": "git+https://github.com/ShaonPro/Tokwise.git"
   },
-  "homepage": "https://github.com/ShaonPro/Token-Usage#readme",
+  "homepage": "https://github.com/ShaonPro/Tokwise#readme",
   "bugs": {
-    "url": "https://github.com/ShaonPro/Token-Usage/issues"
+    "url": "https://github.com/ShaonPro/Tokwise/issues"
   }
 }
-
